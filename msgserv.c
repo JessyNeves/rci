@@ -23,10 +23,13 @@ extern int errno;
 
 
 int main(int argc, char *argv[]){
-	int fd, n, addrlen;
+	int fd,fd2, n, addrlen;
 	struct sockaddr_in addr;
+	struct sockaddr_in addr_tcp;
 
 	struct hostent *h; //variavel do tipo hostent
+	struct hostent *t; // hostent for TCP
+	struct in_addr *b; //in_addr for TCP
 	struct in_addr *a; //variavel do tipo in_addr
 	int maxsize = 128;
 	int recfrom=0, ret, maxfd;
@@ -55,21 +58,39 @@ int main(int argc, char *argv[]){
 		}
 /////////SOCKET UDP //////////////////////
 		a = (struct in_addr*)h->h_addr_list[0];
-		fd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
-		if(fd==-1){
-					printf("ERROR\n");
-					exit(1);//error
-					}
+		fd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP); //UDP
+		fd2=socket(AF_INET,SOCK_STREAM,0);	//TCP
+		if(fd==-1)exit(1);//error
+		if(fd2==-1)exit(1);//error
 
 ///////////////////		UDP		///////////////////////////////////
+	memset((void*)&addr_tcp,(int)'\0',sizeof(addr_tcp)); //clears address
 	memset((void*)&addr,(int)'\0',sizeof(addr)); //clears the vector
 	addr.sin_family=AF_INET; //protocol UDP
 	addr.sin_addr= *a; //protocol UDP IP of the destiny
 	addr.sin_port=htons(59000); //protocol UDP port
-///////////////////		UDP		///////////////////////////////////
+/////////////////////////////////////////////////////
 
 
+	//TCP family specification
+		addr_tcp.sin_family=AF_INET;
+		addr_tcp.sin_addr.s_addr=htonl(INADDR_ANY);
+		addr_tcp.sin_port=htons(5000);
+		printf("Now running TCP Server\n");
+		if(bind(fd2,(struct sockaddr*)&addr_tcp,sizeof(addr_tcp))==-1)exit(0);
+		if(listen(fd2,5)==-1){
+			printf("error Listen\n");
+			exit(1);//error
+		}
+		//Gathering information from other TCP msgserv running
 
+				t = gethostbyname("localhost");
+				b = (struct in_addr*)t->h_addr_list[0];
+				printf("official host name: %s\n", t->h_name);
+				printf("Address Type: %d\n", t->h_addrtype);
+				printf("Adress byte lenght: %d\n", t->h_length);
+				printf("internet address: %s (%08lX)\n",inet_ntoa(*b),(long unsigned int)ntohl(b->s_addr));
+		//Gathering information from other TCP msgserv running
 
 
 			//registering the message server upon start of the program ////////////
@@ -98,6 +119,8 @@ int main(int argc, char *argv[]){
 			if(n==-1) exit(1);
 			printf("%s", buffer);
 			////////////////////////////////////////////////////////////////////////////////
+
+
 
 			while(1){
 
