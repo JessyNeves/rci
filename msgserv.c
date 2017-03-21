@@ -23,7 +23,7 @@ extern int errno;
 
 
 int main(int argc, char *argv[]){
-	int fd,fd2, n, addrlen;
+	int fd,fd2,fd3, n, addrlen;
 	struct sockaddr_in addr;
 	struct sockaddr_in addr_tcp;
 
@@ -59,7 +59,9 @@ int main(int argc, char *argv[]){
 /////////SOCKET UDP //////////////////////
 		a = (struct in_addr*)h->h_addr_list[0];
 		fd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP); //UDP
-		fd2=socket(AF_INET,SOCK_STREAM,0);	//TCP
+		fd2=socket(AF_INET,SOCK_STREAM,0);
+		fd3=socket(AF_INET,SOCK_STREAM,0);	//TCP
+//TCP
 		if(fd==-1)exit(1);//error
 		if(fd2==-1)exit(1);//error
 
@@ -75,23 +77,28 @@ int main(int argc, char *argv[]){
 	//TCP family specification
 		addr_tcp.sin_family=AF_INET;
 		addr_tcp.sin_addr.s_addr=htonl(INADDR_ANY);
-		addr_tcp.sin_port=htons(5000);
-		printf("Now running TCP Server\n");
+		addr_tcp.sin_port=htons(59000);
 		if(bind(fd2,(struct sockaddr*)&addr_tcp,sizeof(addr_tcp))==-1)exit(0);
 		if(listen(fd2,5)==-1){
 			printf("error Listen\n");
 			exit(1);//error
 		}
-		//Gathering information from other TCP msgserv running
 
-				t = gethostbyname("localhost");
+		//Gathering information from other TCP msgserv running
+				t = gethostbyname("tejo.tecnico.ulisboa.pt");
 				b = (struct in_addr*)t->h_addr_list[0];
-				printf("official host name: %s\n", t->h_name);
-				printf("Address Type: %d\n", t->h_addrtype);
-				printf("Adress byte lenght: %d\n", t->h_length);
 				printf("internet address: %s (%08lX)\n",inet_ntoa(*b),(long unsigned int)ntohl(b->s_addr));
 		//Gathering information from other TCP msgserv running
 
+				//Connecting to TCP Server
+						n=connect(fd3,(struct sockaddr*)&addr_tcp,sizeof(addr_tcp));
+						if(n==-1){
+							printf("Connection Error - Unable to Connect n=-1\n");
+							exit(1);
+						}else{
+							printf("TCP Connection Established\n");
+							printf("----------------------------\n");
+						}
 
 			//registering the message server upon start of the program ////////////
 			strcat(buffer, "REG ");
@@ -107,7 +114,7 @@ int main(int argc, char *argv[]){
 					printf("Couldn't send\n");
 					exit(1);
 					}
-			// No recfrom function because ID server does not respond in the case
+			// No recfrom function because ID server does not respond in this case
 			///////////////////////////////////////////////////////////////
 
 			////////////////////Request for other message servers connected//////////////////
