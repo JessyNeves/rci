@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
 	//TCP family specification
 		addr_tcp.sin_family=AF_INET;
 		addr_tcp.sin_addr.s_addr=htonl(INADDR_ANY);
-		addr_tcp.sin_port=htons(5000);
+		addr_tcp.sin_port=htons(atoi(argv[4]));
 		if(bind(fd2,(struct sockaddr*)&addr_tcp,sizeof(addr_tcp))==-1)exit(0);
 		if(listen(fd2,5)==-1){
 			printf("error Listen\n");
@@ -125,9 +125,6 @@ int main(int argc, char *argv[]){
 			n=recvfrom(fd,buffer,maxsize,0,(struct sockaddr*)&addr,&addrlen);
 			if(n==-1) exit(1);
 			printf("%s", buffer);
-
-
-			/// Tratamento de dados dos outros servidores ligados
 
 			char * servers = buffer;
 			int n_servers = 0;
